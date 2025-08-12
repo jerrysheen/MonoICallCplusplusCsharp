@@ -1,0 +1,3 @@
+﻿  Main.cpp
+C:\Users\61995\Desktop\MonoTest\MonoTest\Main.cpp(10,6): warning C4326: “main”的返回类型应为“int”而非“void”
+  MonoTest.vcxproj -> C:\Users\61995\Desktop\MonoTest\x64\Debug\MonoTest.exe

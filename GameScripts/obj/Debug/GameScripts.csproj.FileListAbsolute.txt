@@ -1,0 +1,6 @@
+C:\Users\61995\Desktop\MonoTest\GameScripts\bin\Debug\GameScripts.dll
+C:\Users\61995\Desktop\MonoTest\GameScripts\bin\Debug\GameScripts.pdb
+C:\Users\61995\Desktop\MonoTest\GameScripts\obj\Debug\GameScripts.csproj.AssemblyReference.cache
+C:\Users\61995\Desktop\MonoTest\GameScripts\obj\Debug\GameScripts.csproj.CoreCompileInputs.cache
+C:\Users\61995\Desktop\MonoTest\GameScripts\obj\Debug\GameScripts.dll
+C:\Users\61995\Desktop\MonoTest\GameScripts\obj\Debug\GameScripts.pdb
