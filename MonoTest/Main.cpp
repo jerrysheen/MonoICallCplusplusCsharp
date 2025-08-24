@@ -25,62 +25,84 @@ public:
 };
 
 std::set<Component*> componentPool;
+MonoDomain* domain;
+MonoAssembly* assembly;
+MonoImage* image;
 
-int ManagedCallComponentGetId(const Component* component) {
-	return component->id;
-}
+extern "C"
+{
+	int ManagedCallComponentGetId(const Component* component) {
+		return component->id;
+	}
 
-MonoString* ManagedCallComponentGetTag(const Component* component) {
-	return component->tag;
-}
+	MonoString* ManagedCallComponentGetTag(const Component* component) {
+		return component->tag;
+	}
 
-Component* ManagedCallComponentNew(int test, int id, MonoString* tag) {
-	auto newComp = new Component(id, tag);
-	componentPool.insert(newComp);
-	return newComp;
-}
+	Component* ManagedCallComponentNew(int test, int id, MonoString* tag) {
+		auto newComp = new Component(id, tag);
+		componentPool.insert(newComp);
+		return newComp;
+	}
 
-void ManagedCallComponentDelete(Component* component) {
-	componentPool.erase(component);
-	delete component;
+	void ManagedCallComponentDelete(Component* component) {
+		componentPool.erase(component);
+		delete component;
+	}
+
+	void ManagedCallSetFloatArray(float* data, int length, float scale)
+	{
+		for (int i = 0; i < length; ++i)
+		{
+			data[i] *= scale;
+			std::cout << data[i] << std::endl;
+		}
+
+	}
+
+	MonoObject* NativeDirectCreateNewAndReturn() 
+	{
+		auto newComp = new Component(111, mono_string_new(domain, "1111"));
+		componentPool.insert(newComp);
+		// 这个地方应该就是创建一个对应C# 名字的Class， 然后对应的数据填进去。
+		MonoClass* mainClass = mono_class_from_name(image, "GameScripts", "Component");
+
+
+
+		// 创建对象 + 初始化
+		MonoObject* obj = mono_object_new(domain, mainClass);
+		mono_runtime_object_init(obj);
+
+		// 塞对应的IntPtr值给 C#类， 销毁的时候才能找到对应的C++，
+		MonoClassField* idField = mono_class_get_field_from_name(mainClass, "_nativeHandle");
+		if (idField) {
+			void* value = newComp;
+			mono_field_set_value(obj, idField, &value);
+		}
+		return obj;
+	}
+
 }
 
 
 void main() 
 {
-	MonoDomain* domain = mono_jit_init("MonoTestDomain");
+	domain = mono_jit_init("MonoTestDomain");
 	const char* assemblyPath = "D:\\GitHubST\\MonoICallCplusplusCsharp\\x64\\Debug\\GameScripts.dll"; // Update with your assembly path
-	MonoAssembly* assembly = mono_domain_assembly_open(domain, assemblyPath);
+	assembly = mono_domain_assembly_open(domain, assemblyPath);
 	if (!assembly) {
 		printf("Failed to load assembly: %s\n", assemblyPath);
 		return;
 	}
 
-	MonoImage* image = mono_assembly_get_image(assembly);
-	//MonoClass* klass = mono_class_from_name(image, "GameScripts", "HelloWorld");
-	//MonoMethod* method = mono_class_get_method_from_name(klass, "SayHello", 0);
-	//
-	//mono_runtime_invoke(method, nullptr, nullptr, nullptr);
-	//
-	//std::string name = "World"; // Example name to pass to the method
-	//MonoMethod* method1 = mono_class_get_method_from_name(klass, "GetMessage", 1);
-
-	//MonoString* mono_name = mono_string_new(domain, name.c_str());
-	//void* args[1] = { mono_name };
-
-	//MonoObject* result = mono_runtime_invoke(method1, nullptr, args, nullptr);
-	//MonoString* result_string = (MonoString*)result;
-
-	//char* utf8_result = mono_string_to_utf8(result_string);
-	//std::string cpp_result(utf8_result);
-
-	//std::cout << cpp_result << std::endl;
-	//mono_free(utf8_result);
+	image = mono_assembly_get_image(assembly);
 
 	mono_add_internal_call("GameScripts.Component::NativeCallGetId", reinterpret_cast<void*>(ManagedCallComponentGetId));
 	mono_add_internal_call("GameScripts.Component::NativeCallGetTagInternal", reinterpret_cast<void*>(ManagedCallComponentGetTag));
 	mono_add_internal_call("GameScripts.Component::NativeCallComponentNew", reinterpret_cast<void*>(ManagedCallComponentNew));
 	mono_add_internal_call("GameScripts.Component::NativeCallComponentDelete", reinterpret_cast<void*>(ManagedCallComponentDelete));
+	mono_add_internal_call("GameScripts.Component::NativeCallSetFloatArray", reinterpret_cast<void*>(ManagedCallSetFloatArray));
+	mono_add_internal_call("GameScripts.Component::NativeDirectCreateNewAndReturn", reinterpret_cast<void*>(NativeDirectCreateNewAndReturn));
 
 	MonoClass* componentClass = mono_class_from_name(image, "GameScripts", "Component");
 	MonoClassField* nativeHandleField = mono_class_get_field_from_name(componentClass, "_nativeHandle");
@@ -90,7 +112,6 @@ void main()
 	MonoMethod* entryPointMethod = mono_method_desc_search_in_class(entryPointMethodDesc, mainClass);
 
 	mono_method_desc_free(entryPointMethodDesc);
-
 	mono_runtime_invoke(entryPointMethod, nullptr, nullptr, nullptr);
 
 	mono_jit_cleanup(domain);

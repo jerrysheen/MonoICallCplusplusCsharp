@@ -14,6 +14,9 @@ namespace GameScripts
             {
                 var comp = new Component(i, $"Tag {i * 10}");
             }
+           
+            Component componentFromC = Component.NativeDirectCreateNewAndReturn("Test");
+            Console.WriteLine($"_nativeHandle #{componentFromC._nativeHandle} id"); ;
         }
     }
 }
