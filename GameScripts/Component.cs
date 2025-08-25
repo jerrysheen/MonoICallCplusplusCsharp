@@ -23,7 +23,7 @@ namespace GameScripts
     public class Component
     {
         public IntPtr _nativeHandle = IntPtr.Zero;
-
+        public IntPtr _TestObject = IntPtr.Zero;
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern IntPtr NativeCallComponentNew(int id, string tag);
 
@@ -51,7 +51,10 @@ namespace GameScripts
         //public static extern void NativeCallSetVertex(VertexStruct[] vertexStruct);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static unsafe extern void NativeCallSetFloatArray(float* data, int length, float scale);
+        public static unsafe extern void NativeCallSetFloatArray(float* data, int length, float scale);
+        
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static unsafe extern void SetManagedObjectValue(Component component);
 
         public int Id
         {

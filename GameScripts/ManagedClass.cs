@@ -16,6 +16,8 @@ namespace GameScripts
             }
            
             Component componentFromC = Component.NativeDirectCreateNewAndReturn("Test");
+            Component.SetManagedObjectValue(componentFromC);
+            Console.WriteLine($"_TestObject #{componentFromC._TestObject} value"); ;
             Console.WriteLine($"_nativeHandle #{componentFromC._nativeHandle} id"); ;
         }
     }

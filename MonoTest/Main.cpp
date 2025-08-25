@@ -29,6 +29,14 @@ MonoDomain* domain;
 MonoAssembly* assembly;
 MonoImage* image;
 
+
+struct ManagedObjectLayout
+{
+public:
+	void* nativePtr;      // 对应 IntPtr nativePtr
+	void* testObject;      // 对应 int testValue  
+};
+
 extern "C"
 {
 	int ManagedCallComponentGetId(const Component* component) {
@@ -58,6 +66,14 @@ extern "C"
 			std::cout << data[i] << std::endl;
 		}
 
+	}
+
+	void SetManagedObjectValue(MonoObject* obj) 
+	{
+		char* ptr = (char*)obj;
+		ptr += (size_t)(sizeof(void*) * 2);
+		ManagedObjectLayout* layout = reinterpret_cast<ManagedObjectLayout*>(ptr);
+		layout->testObject = (void*)12121212;
 	}
 
 	MonoObject* NativeDirectCreateNewAndReturn() 
@@ -103,6 +119,7 @@ void main()
 	mono_add_internal_call("GameScripts.Component::NativeCallComponentDelete", reinterpret_cast<void*>(ManagedCallComponentDelete));
 	mono_add_internal_call("GameScripts.Component::NativeCallSetFloatArray", reinterpret_cast<void*>(ManagedCallSetFloatArray));
 	mono_add_internal_call("GameScripts.Component::NativeDirectCreateNewAndReturn", reinterpret_cast<void*>(NativeDirectCreateNewAndReturn));
+	mono_add_internal_call("GameScripts.Component::SetManagedObjectValue", reinterpret_cast<void*>(SetManagedObjectValue));
 
 	MonoClass* componentClass = mono_class_from_name(image, "GameScripts", "Component");
 	MonoClassField* nativeHandleField = mono_class_get_field_from_name(componentClass, "_nativeHandle");
